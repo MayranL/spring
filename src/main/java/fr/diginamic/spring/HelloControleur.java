@@ -8,8 +8,17 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("hello")
 public class HelloControleur {
 
+    private final HelloService helloService;
+
+    public HelloControleur(HelloService helloService) {
+        this.helloService = helloService;
+    }
+
     @GetMapping
     public String direHello() {
-        return "Hello";
+        return helloService.salutations();
     }
+
+
+
 }
