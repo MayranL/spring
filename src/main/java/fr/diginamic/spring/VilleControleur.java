@@ -25,18 +25,25 @@ public class VilleControleur {
     ));
 
     /**
-     * Méthode qui permet de récupérer la liste de villes
-     * @return List<Ville>
+     * Méthode qui permet de récupérer la liste complète de toutes les villes.
+     *
+     * @return List<Ville> La liste des villes.
      */
     @GetMapping
     public List<Ville> getVilles() {
         return villes;
     }
 
+    /**
+     * Méthode qui permet de récupérer une ville spécifique en fonction de son identifiant (id).
+     *
+     * @param id L'identifiant de la ville à récupérer.
+     * @return Ville L'objet Ville correspondant à l'identifiant ou null si la ville n'est pas trouvée.
+     */
     @GetMapping("/ville/{id}")
     public Ville getVille(@PathVariable int id) {
-        for(Ville v : villes){
-            if(v.getId() == id){
+        for (Ville v : villes) {
+            if (v.getId() == id) {
                 return v;
             }
         }
@@ -44,9 +51,13 @@ public class VilleControleur {
     }
 
     /**
-     * Méthode qui permet d'ajouter une ville à la liste villes
-     * @param ville
-     * @return ResponseEntity<String>
+     * Méthode qui permet d'ajouter une nouvelle ville à la liste des villes.
+     * La validation se fait sur le nom de la ville (au moins 2 caractères),
+     * ainsi que sur le nombre d'habitants (doit être supérieur ou égal à 1).
+     * De plus, la ville ne doit pas exister déjà (même identifiant ou même nom).
+     *
+     * @param ville L'objet Ville à ajouter à la liste.
+     * @return ResponseEntity<String> Un message et un code de statut HTTP correspondant.
      */
     @PostMapping
     public ResponseEntity<String> addVille(@RequestBody Ville ville) {
@@ -65,7 +76,7 @@ public class VilleControleur {
 
         // Vérifier si la ville et l'id existent déjà
         for (Ville v : villes) {
-            if(v.getId() == ville.getId()) {
+            if (v.getId() == ville.getId()) {
                 return new ResponseEntity<>("L'id existe déjà", HttpStatus.BAD_REQUEST);
             }
             if (v.getNom().equals(ville.getNom())) {
@@ -77,32 +88,47 @@ public class VilleControleur {
         return new ResponseEntity<>("Ville insérée avec succès", HttpStatus.OK);
     }
 
+    /**
+     * Méthode qui permet de mettre à jour une ville existante.
+     * Elle met à jour le nom et le nombre d'habitants de la ville avec l'identifiant donné.
+     * Le nom de la ville ne peut pas être déjà utilisé par une autre ville.
+     *
+     * @param ville L'objet Ville avec les informations mises à jour.
+     * @return ResponseEntity<String> Un message et un code de statut HTTP correspondant.
+     */
     @PutMapping
     public ResponseEntity<String> updateVille(@RequestBody Ville ville) {
         if (ville.getNom() == null || ville.getNom().length() < 2) {
-            return new ResponseEntity<>("Le nom doit faire au moins 2 lettrs", HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>("Le nom doit faire au moins 2 lettres", HttpStatus.BAD_REQUEST);
         }
         for (Ville v : villes) {
-            if(ville.getNom().equals(v.getNom())){
+            if (ville.getNom().equals(v.getNom())) {
                 return new ResponseEntity<>("Nom de ville déjà utilisé", HttpStatus.BAD_REQUEST);
             }
-            if(v.getId() == ville.getId() && ville.getNbHabitants()>=1) {
+            if (v.getId() == ville.getId() && ville.getNbHabitants() >= 1) {
                 v.setNom(ville.getNom());
                 v.setNbHabitants(ville.getNbHabitants());
                 return new ResponseEntity<>("Ville mise à jour correctement !", HttpStatus.OK);
             }
         }
-        return new ResponseEntity<>("Probleme dans la création", HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>("Problème dans la création", HttpStatus.BAD_REQUEST);
     }
 
+    /**
+     * Méthode qui permet de supprimer une ville en fonction de son identifiant (id).
+     * Si la ville est trouvée, elle est supprimée de la liste.
+     *
+     * @param id à supprimer.
+     * @return ResponseEntity<String> Un message et un code de statut HTTP correspondant.
+     */
     @DeleteMapping("/ville/{id}")
     public ResponseEntity<String> deleteVille(@PathVariable int id) {
-        for(Ville v : villes) {
-            if(v.getId() == id) {
+        for (Ville v : villes) {
+            if (v.getId() == id) {
                 villes.remove(v);
-                return new ResponseEntity<>("Ville bien supprimé", HttpStatus.OK);
+                return new ResponseEntity<>("Ville bien supprimée", HttpStatus.OK);
             }
         }
-        return new ResponseEntity<>("Aucune ville trouvé avec son id", HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>("Aucune ville trouvée avec cet id", HttpStatus.BAD_REQUEST);
     }
 }
