@@ -16,7 +16,7 @@ public class HelloControleur {
 
     /**
      * Méthode qui permet d'afficher le contenu de salutations
-     * @return
+     * @return String
      */
     @GetMapping
     public String direHello() {

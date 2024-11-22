@@ -7,7 +7,7 @@ public class HelloService {
 
     /**
      * Méthode qui retourne une chaine de caractère
-     * @return
+     * @return String
      */
     public String salutations(){
         return "Je suis la classe de service et je vous dis Bonjour ";

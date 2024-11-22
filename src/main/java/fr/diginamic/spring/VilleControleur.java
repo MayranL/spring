@@ -26,7 +26,7 @@ public class VilleControleur {
 
     /**
      * Méthode qui permet de récupérer la liste de ville
-     * @return
+     * @return List<Ville>
      */
     @GetMapping
     public List<Ville> getVilles() {
@@ -36,7 +36,7 @@ public class VilleControleur {
     /**
      * Méthode qui permet d'ajouter une ville à la liste villes
      * @param ville
-     * @return
+     * @return ResponseEntity<String>
      */
     @PostMapping
     public ResponseEntity<String> addVille(@RequestBody Ville ville) {
