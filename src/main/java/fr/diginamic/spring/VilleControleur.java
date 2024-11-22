@@ -24,11 +24,20 @@ public class VilleControleur {
                     new Ville("Lille", "233 000"),
                     new Ville("Montpellier", "290 000")));
 
+    /**
+     * Méthode qui permet de récupérer la liste de ville
+     * @return
+     */
     @GetMapping
     public List<Ville> getVilles() {
         return villes;
     }
 
+    /**
+     * Méthode qui permet d'ajouter une ville à la liste villes
+     * @param ville
+     * @return
+     */
     @PostMapping
     public ResponseEntity<String> addVille(@RequestBody Ville ville) {
         for(Ville v : villes){

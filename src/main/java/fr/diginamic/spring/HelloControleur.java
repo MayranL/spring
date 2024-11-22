@@ -14,6 +14,10 @@ public class HelloControleur {
         this.helloService = helloService;
     }
 
+    /**
+     * Méthode qui permet d'afficher le contenu de salutations
+     * @return
+     */
     @GetMapping
     public String direHello() {
         return helloService.salutations();
