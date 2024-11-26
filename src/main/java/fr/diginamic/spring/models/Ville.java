@@ -1,24 +1,44 @@
-package fr.diginamic.spring;
+package fr.diginamic.spring.models;
 
+import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
-import org.hibernate.validator.constraints.Length;
 
+@Entity
+@Table(name = "VILLE")
 public class Ville {
-    @Positive
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY) // ID auto-généré
     private int id;
+
     @NotNull
     @Size(min = 2, max = 50)
+    @Column(length = 50, nullable = false)
     private String nom;
+
     @Min(1)
+    @Column(nullable = false)
     private int nbHabitants;
 
-    public Ville(int id, String nom, int nbHabitants) {
-        this.id = id;
+
+    @ManyToOne
+    @JoinColumn(name = "departement_id")
+    private Departement departement;
+
+    public Ville() {
+    }
+
+    public Ville(String nom, int nbHabitants) {
         this.nom = nom;
         this.nbHabitants = nbHabitants;
+    }
+
+    public Ville(String nom, int nbHabitants, Departement departement) {
+        this.nom = nom;
+        this.nbHabitants = nbHabitants;
+        this.departement = departement;
     }
 
     /**
@@ -26,9 +46,17 @@ public class Ville {
      *
      * @return id id
      */
-    @Positive
     public int getId() {
         return id;
+    }
+
+    /**
+     * Setter
+     *
+     * @param id id
+     */
+    public void setId(int id) {
+        this.id = id;
     }
 
     /**
@@ -65,5 +93,13 @@ public class Ville {
      */
     public void setNbHabitants(int nbHabitants) {
         this.nbHabitants = nbHabitants;
+    }
+
+    public Departement getDepartement() {
+        return departement;
+    }
+
+    public void setDepartement(Departement departement) {
+        this.departement = departement;
     }
 }

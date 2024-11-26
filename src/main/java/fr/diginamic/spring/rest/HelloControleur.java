@@ -1,5 +1,6 @@
-package fr.diginamic.spring;
+package fr.diginamic.spring.rest;
 
+import fr.diginamic.spring.services.HelloService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
