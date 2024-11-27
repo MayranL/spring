@@ -25,7 +25,7 @@ public class Application implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        // Création d'un département
+        /*// Création d'un département
         Departement departement = new Departement("Ile-de-France");
         Departement departement2 = new Departement("Isere");
 
@@ -50,5 +50,5 @@ public class Application implements CommandLineRunner {
         departementService.updateDepartement(departement2.getId(), departement2);
 
         System.out.println("Ville créée : " + paris.getNom() + " dans le département " + departement.getNom());
-    }
+    */}
 }

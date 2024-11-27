@@ -1,5 +1,6 @@
 package fr.diginamic.spring.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 import java.util.HashSet;
@@ -10,10 +11,13 @@ import java.util.Set;
 @Table(name = "DEPARTEMENT")
 public class Departement {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    //@GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
-    @Column(name = "nom")
-    private String nom;
+
+    @Column(name = "code")
+    private String code;
+    @Column(name = "name")
+    private String name;
 
     @OneToMany(mappedBy = "departement")//, cascade = CascadeType.ALL
     private Set<Ville> villes;
@@ -25,8 +29,8 @@ public class Departement {
     public Departement() {
     }
 
-    public Departement(String nom) {
-        this.nom = nom;
+    public Departement(String name) {
+        this.name = name;
     }
 
     public int getId() {
@@ -42,17 +46,30 @@ public class Departement {
         this.id = id;
     }
 
-    public String getNom() {
-        return nom;
+    public String getCode() {
+        return code;
     }
 
     /**
      * Setter
      *
-     * @param nom nom
+     * @param code code
      */
-    public void setNom(String nom) {
-        this.nom = nom;
+    public void setCode(String code) {
+        this.code = code;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    /**
+     * Setter
+     *
+     * @param name name
+     */
+    public void setName(String name) {
+        this.name = name;
     }
 
     public Set<Ville> getVilles() {
@@ -72,8 +89,7 @@ public class Departement {
     public String toString() {
         final StringBuffer sb = new StringBuffer("Departement{");
         sb.append("id=").append(id);
-        sb.append(", nom='").append(nom).append('\'');
-        sb.append(", villes=").append(villes);
+        sb.append(", name='").append(name).append('\'');
         sb.append('}');
         return sb.toString();
     }
@@ -83,11 +99,11 @@ public class Departement {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Departement that = (Departement) o;
-        return id == that.id && Objects.equals(nom, that.nom) && Objects.equals(villes, that.villes);
+        return id == that.id && Objects.equals(name, that.name) && Objects.equals(villes, that.villes);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, nom, villes);
+        return Objects.hash(id, name, villes);
     }
 }

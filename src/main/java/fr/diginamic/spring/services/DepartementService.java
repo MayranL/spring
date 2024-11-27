@@ -1,79 +1,51 @@
 package fr.diginamic.spring.services;
 
-import fr.diginamic.spring.dao.DepartementDao;
-import fr.diginamic.spring.dao.VilleDao;
 import fr.diginamic.spring.models.Departement;
-import fr.diginamic.spring.models.Ville;
-import jakarta.transaction.Transactional;
+import fr.diginamic.spring.repository.DepartementRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class DepartementService {
 
-    private DepartementDao departementDao;
-    private VilleDao villeDao;
-
     @Autowired
-    public DepartementService(DepartementDao departementDao, VilleDao villeDao) {
-        this.departementDao = departementDao;
-        this.villeDao = villeDao;
+    private DepartementRepository departementRepository;
+
+    // Recherche d'un département par son code
+    public Optional<Departement> getDepartementByCode(String code) {
+        return departementRepository.findByCode(code);
     }
 
-    // Méthode pour obtenir un département par ID
-    public Departement getDepartementById(int id) {
-        return departementDao.getDepartementById(id);
+    // Recherche d'un département par son nom
+    public Optional<Departement> getDepartementByName(String name) {
+        return departementRepository.findByName(name);
     }
 
-    // Méthode pour obtenir tous les départements
-    public List<Departement> getAllDepartements() {
-        return departementDao.getAllDepartements();
+    // Recherche de départements ayant un nom contenant une certaine chaîne
+    public List<Departement> getDepartementsByNameContaining(String namePart) {
+        return departementRepository.findByNameContaining(namePart);
     }
 
-    // Méthode pour créer un département
-    @Transactional
-    public void createDepartement(Departement departement) {
-        departementDao.createDepartement(departement);
+    // Recherche des départements ayant plus de n villes
+    public List<Departement> getDepartementsWithMoreThanNVilles(int minVilles) {
+        return departementRepository.findDepartementsWithMoreThanNVilles(minVilles);
     }
 
-    // Méthode pour mettre à jour un département
-    @Transactional
-    public Departement updateDepartement(int id, Departement departement) {
-        departement.setId(id);  // On assure que l'ID reste inchangé
-        return departementDao.updateDepartement(departement);
+    // Recherche d'un département par son code, avec ses villes associées
+    public Optional<Departement> getDepartementWithVilles(String code) {
+        return departementRepository.findByCodeWithVilles(code);
     }
 
-    // Méthode pour supprimer un département
-    @Transactional
-    public void deleteDepartement(int id) {
-        departementDao.deleteDepartement(id);
+    // Recherche d'un département par son nom, avec ses villes associées
+    public Optional<Departement> getDepartementByNameWithVilles(String name) {
+        return departementRepository.findByNameWithVilles(name);
     }
 
-    // Méthode pour lister les n plus grandes villes d'un département
-    public List<Ville> getTopNCitiesByPopulation(int departementId, int n) {
-        List<Ville> villes = villeDao.getVillesByDepartement(departementId);
-
-        // Trier les villes par population décroissante
-        villes.sort((v1, v2) -> Integer.compare(v2.getNbHabitants(), v1.getNbHabitants()));
-
-        // Retourner les n premières villes
-        return villes.subList(0, Math.min(n, villes.size()));
-    }
-
-    // Méthode pour lister les villes ayant une population comprise entre min et max dans un département donné
-    public List<Ville> getVillesByPopulationRange(int departementId, int minPopulation, int maxPopulation) {
-        List<Ville> villes = villeDao.getVillesByDepartement(departementId);
-        List<Ville> filteredVilles = new ArrayList<>();
-
-        for (Ville ville : villes) {
-            if (ville.getNbHabitants() >= minPopulation && ville.getNbHabitants() <= maxPopulation) {
-                filteredVilles.add(ville);
-            }
-        }
-
-        return filteredVilles;
+    // Recherche d'un département par son code, trié par le nom des villes
+    public List<Departement> getDepartementWithSortedCitiesByName(String code) {
+        return departementRepository.findDepartementWithSortedCitiesByName(code);
     }
 }

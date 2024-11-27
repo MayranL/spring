@@ -1,5 +1,6 @@
 package fr.diginamic.spring.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
@@ -10,7 +11,7 @@ import jakarta.validation.constraints.Size;
 public class Ville {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY) // ID auto-généré
+    //@GeneratedValue(strategy = GenerationType.IDENTITY) // ID auto-généré
     private int id;
 
     @NotNull
@@ -18,14 +19,14 @@ public class Ville {
     @Column(length = 50, nullable = false)
     private String nom;
 
-    @Min(1)
-    @Column(nullable = false)
-    private int nbHabitants;
-
-
     @ManyToOne
     @JoinColumn(name = "departement_id")
+    @JsonIgnore
     private Departement departement;
+
+    @Min(1)
+    @Column(nullable = false, name = "NB_HABITANTS")
+    private int nbHabitants;
 
     public Ville() {
     }

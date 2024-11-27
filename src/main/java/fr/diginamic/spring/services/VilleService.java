@@ -1,51 +1,72 @@
 package fr.diginamic.spring.services;
 
 import fr.diginamic.spring.models.Ville;
-import fr.diginamic.spring.dao.VilleDao;
-import jakarta.transaction.Transactional;
+import fr.diginamic.spring.repository.VilleRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class VilleService {
 
     @Autowired
-    private VilleDao villeDao;
+    private VilleRepository villeRepository;
 
-    // Extraire toutes les villes
-    public List<Ville> extractVilles() {
-        return villeDao.findAll();
+    // Recherche d'une ville par son nom
+    public Optional<Ville> getVilleByNom(String nom) {
+        return villeRepository.findByNom(nom);
     }
 
-    // Extraire une ville par son ID
-    public Ville extractVille(int idVille) {
-        return villeDao.findById(idVille);
+    // Recherche des villes dont le nom commence par une chaîne donnée
+    public List<Ville> getVillesStartingWith(String prefix) {
+        return villeRepository.findByNomStartingWith(prefix);
     }
 
-    // Extraire une ville par son nom
-    public Ville extractVille(String nom) {
-        return villeDao.findByNom(nom);
+    // Recherche des villes ayant une population supérieure à un minimum
+    public List<Ville> getVillesWithPopulationGreaterThan(int minPopulation) {
+        return villeRepository.findAllByNbHabitantsGreaterThan(minPopulation);
     }
 
-    // Création d'une nouvelle ville
-    @Transactional
-    public List<Ville> createVille(Ville ville) {
-        villeDao.save(ville);
-        return villeDao.findAll(); // Retourne la liste mise à jour des villes
+    // Recherche des villes dont la population est comprise entre deux valeurs
+    public List<Ville> getVillesWithPopulationBetween(int minPopulation, int maxPopulation) {
+        return villeRepository.findAllByNbHabitantsBetween(minPopulation, maxPopulation);
+    }
+
+    // Recherche des n villes les plus peuplées d'un département
+    public Page<Ville> getTopNVillesByDepartement(String codeDepartement, int n, Pageable pageable) {
+        return villeRepository.findTopNVillesByDepartementCodeOrderByNbHabitantsDesc(codeDepartement, pageable);
+    }
+
+    // Recherche d'une ville par son ID
+    public Optional<Ville> getVilleById(int id) {
+        return villeRepository.findById(id);
+    }
+
+    // Ajouter une nouvelle ville
+    public Ville createVille(Ville ville) {
+        return villeRepository.save(ville);
     }
 
     // Modifier une ville existante
-    @Transactional
-    public List<Ville> modifierVille(int idVille, Ville villeModifiee) {
-        Ville updatedVille = villeDao.update(idVille, villeModifiee);
-        return updatedVille != null ? villeDao.findAll() : null; // Retourne la liste mise à jour des villes
+    public Ville modifyVille(int id, Ville ville) {
+        Optional<Ville> existingVille = villeRepository.findById(id);
+        if (existingVille.isPresent()) {
+            Ville updatedVille = existingVille.get();
+            updatedVille.setNom(ville.getNom());
+            updatedVille.setNbHabitants(ville.getNbHabitants());
+            updatedVille.setDepartement(ville.getDepartement());
+            return villeRepository.save(updatedVille);
+        } else {
+            return null; // Ou lancer une exception selon la logique
+        }
     }
 
     // Supprimer une ville
-    @Transactional
-    public List<Ville> supprimerVille(int idVille) {
-        villeDao.delete(idVille);
-        return villeDao.findAll(); // Retourne la liste mise à jour des villes
+    public void deleteVille(int id) {
+        villeRepository.deleteById(id);
     }
 }
