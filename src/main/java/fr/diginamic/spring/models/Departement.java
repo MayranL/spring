@@ -33,6 +33,11 @@ public class Departement {
         this.name = name;
     }
 
+    public Departement(String code, String name) {
+        this.code = code;
+        this.name = name;
+    }
+
     public int getId() {
         return id;
     }

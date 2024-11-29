@@ -15,7 +15,7 @@ public class DepartementService {
     private DepartementRepository departementRepository;
 
     // Recherche d'un département par son code
-    public Optional<Departement> getDepartementByCode(String code) {
+    public Departement getDepartementByCode(String code) {
         return departementRepository.findByCode(code);
     }
 

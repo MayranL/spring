@@ -1,5 +1,7 @@
 package fr.diginamic.spring.rest;
 
+import fr.diginamic.spring.dto.DepartementDto;
+import fr.diginamic.spring.mappers.DepartementMapper;
 import fr.diginamic.spring.models.Departement;
 import fr.diginamic.spring.services.DepartementService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,10 +18,12 @@ public class DepartementControleur {
     @Autowired
     private DepartementService departementService;
 
+    private final DepartementMapper departementMapper = new DepartementMapper();
+
     // Recherche d'un département par code
     @GetMapping("/departement/code")
-    public Optional<Departement> getDepartementByCode(@RequestParam String code) {
-        return departementService.getDepartementByCode(code);
+    public DepartementDto getDepartementByCode(@RequestParam String code) {
+        return departementMapper.toDto(departementService.getDepartementByCode(code));
     }
 
     // Recherche des départements avec plus de n villes
@@ -30,8 +34,8 @@ public class DepartementControleur {
 
     // Recherche d'un département par nom
     @GetMapping("/departement/name")
-    public Optional<Departement> getDepartementByName(@RequestParam String name) {
-        return departementService.getDepartementByName(name);
+    public List<DepartementDto> getDepartementByName(@RequestParam String name) {
+        return departementService.getDepartementByName(name).stream().map(d->departementMapper.toDto(d)).toList();
     }
 
     // Recherche d'un département avec ses villes par code

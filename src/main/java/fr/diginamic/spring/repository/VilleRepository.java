@@ -13,7 +13,7 @@ import java.util.Optional;
 public interface VilleRepository extends JpaRepository<Ville, Integer> {
 
     // Recherche d'une ville par son nom
-    Optional<Ville> findByNom(String nom);
+    Ville findByNom(String nom);
 
     // Recherche des villes dont le nom commence par une chaîne donnée
     List<Ville> findByNomStartingWith(String prefix);
