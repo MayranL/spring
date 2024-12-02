@@ -16,8 +16,8 @@ public class Departement {
 
     @Column(name = "code")
     private String code;
-    @Column(name = "name")
-    private String name;
+    @Column(name = "nom")
+    private String nom;
 
     @OneToMany(mappedBy = "departement")//, cascade = CascadeType.ALL
     private Set<Ville> villes;
@@ -29,13 +29,19 @@ public class Departement {
     public Departement() {
     }
 
-    public Departement(String name) {
-        this.name = name;
+    public Departement(String nom) {
+        this.nom = nom;
     }
 
-    public Departement(String code, String name) {
+    public Departement(String code, String nom) {
         this.code = code;
-        this.name = name;
+        this.nom = nom;
+    }
+
+    public Departement(int id, String code, String nom) {
+        this.id = id;
+        this.code = code;
+        this.nom = nom;
     }
 
     public int getId() {
@@ -64,17 +70,17 @@ public class Departement {
         this.code = code;
     }
 
-    public String getName() {
-        return name;
+    public String getNom() {
+        return nom;
     }
 
     /**
      * Setter
      *
-     * @param name name
+     * @param nom nom
      */
-    public void setName(String name) {
-        this.name = name;
+    public void setNom(String nom) {
+        this.nom = nom;
     }
 
     public Set<Ville> getVilles() {
@@ -94,7 +100,7 @@ public class Departement {
     public String toString() {
         final StringBuffer sb = new StringBuffer("Departement{");
         sb.append("id=").append(id);
-        sb.append(", name='").append(name).append('\'');
+        sb.append(", nom='").append(nom).append('\'');
         sb.append('}');
         return sb.toString();
     }
@@ -104,11 +110,11 @@ public class Departement {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Departement that = (Departement) o;
-        return id == that.id && Objects.equals(name, that.name) && Objects.equals(villes, that.villes);
+        return id == that.id && Objects.equals(nom, that.nom) && Objects.equals(villes, that.villes);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, name, villes);
+        return Objects.hash(id, nom, villes);
     }
 }

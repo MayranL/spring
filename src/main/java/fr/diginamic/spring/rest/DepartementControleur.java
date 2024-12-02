@@ -1,105 +1,166 @@
 package fr.diginamic.spring.rest;
 
-import com.itextpdf.text.*;
-import com.itextpdf.text.pdf.BaseFont;
+import com.itextpdf.text.Document;
+import com.itextpdf.text.DocumentException;
+import com.itextpdf.text.Font;
+import com.itextpdf.text.Paragraph;
 import com.itextpdf.text.pdf.PdfWriter;
 import fr.diginamic.spring.dto.DepartementDto;
 import fr.diginamic.spring.dto.VilleDto;
-import fr.diginamic.spring.mappers.DepartementMapper;
 import fr.diginamic.spring.models.Departement;
 import fr.diginamic.spring.models.Ville;
+import fr.diginamic.spring.exception.FunctionalException;
+import fr.diginamic.spring.mappers.DepartementMapper;
+import fr.diginamic.spring.mappers.VilleMapper;
 import fr.diginamic.spring.services.DepartementService;
 import fr.diginamic.spring.services.VilleService;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.ObjectError;
+import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
+@RequestMapping("/departement")
 public class DepartementControleur {
 
     @Autowired
     private DepartementService departementService;
 
     @Autowired
-    private VilleService villeService;
+    private DepartementMapper departementMapper;
 
-    private final DepartementMapper departementMapper = new DepartementMapper();
+    @Autowired
+    private VilleMapper villeMapper;
 
-    @GetMapping("/departements")
-    public List<DepartementDto> findAll(){
-
-        return departementService.findAll().stream().map(d->departementMapper.toDto(d)).toList();
+    @GetMapping("/all")
+    public ResponseEntity<List<DepartementDto>> getDepartements() {
+        List<Departement> departements = departementService.extractAllDepartements();
+        List<DepartementDto> departementsDto = departements.stream().map(departementMapper::toDto).toList();
+        return ResponseEntity.ok(departementsDto);
     }
 
-    // Recherche d'un département par code
-    @GetMapping("/departement/code")
-    public DepartementDto getDepartementByCode(@RequestParam String code) {
-        return departementMapper.toDto(departementService.getDepartementByCode(code));
+    @GetMapping("/id/{id}")
+    public ResponseEntity<DepartementDto> getDepartementParId(@PathVariable int id) {
+        Departement departement = departementService.extractDepartementParId(id);
+        if (departement == null) {
+            return ResponseEntity.notFound().build();
+        }
+        DepartementDto departementDto = departementMapper.toDto(departement);
+        return ResponseEntity.ok(departementDto);
     }
 
-    // Recherche des départements avec plus de n villes
-    @GetMapping("/departements/villes")
-    public List<Departement> getDepartementsWithMoreThanNVilles(@RequestParam int minVilles) {
-        return departementService.getDepartementsWithMoreThanNVilles(minVilles);
+    @GetMapping("/nom/{nom}")
+    public ResponseEntity<DepartementDto> getDepartementByNom(@PathVariable String nom) {
+        Departement departement = departementService.extractDepartementParNom(nom);
+        if (departement == null) {
+            return ResponseEntity.notFound().build();
+        }
+        DepartementDto departementDto = departementMapper.toDto(departement);
+        return ResponseEntity.ok(departementDto);
     }
 
-    // Recherche d'un département par nom
-    @GetMapping("/departement/name")
-    public List<DepartementDto> getDepartementByName(@RequestParam String name) {
-        return departementService.getDepartementByName(name).stream().map(d -> departementMapper.toDto(d)).toList();
+
+    @PostMapping
+    public ResponseEntity<String> ajouterDepartement(@Valid @RequestBody DepartementDto nouveauDepartementDto, BindingResult result) throws FunctionalException {
+        if (result.hasErrors()) {
+            String errorMessage = result.getAllErrors().stream().map(ObjectError::getDefaultMessage).collect(Collectors.joining(", "));
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Erreur de validation : " + errorMessage);
+        }
+
+        departementService.validateDepartement(nouveauDepartementDto);
+
+        Departement nouveauDepartement = departementMapper.toBean(nouveauDepartementDto);
+        if (departementService.extractDepartementParNom(nouveauDepartement.getNom()) != null) {
+            throw new FunctionalException("La département existe déjà.");
+        }
+        departementService.insertDepartement(nouveauDepartement);
+        return ResponseEntity.ok("Département ajouté avec succès.");
     }
 
-    // Recherche d'un département avec ses villes par code
-    @GetMapping("/departement/code-villes")
-    public Optional<Departement> getDepartementWithVilles(@RequestParam String code) {
-        return departementService.getDepartementWithVilles(code);
+    @PutMapping("/{id}")
+    public ResponseEntity<String> modifierDepartement(@PathVariable int id, @Valid @RequestBody DepartementDto departementModifieDto, BindingResult result) throws FunctionalException {
+        if (result.hasErrors()) {
+            String errorMessage = result.getAllErrors().stream().map(ObjectError::getDefaultMessage).collect(Collectors.joining(", "));
+            throw new FunctionalException("Erreur de validation : " + errorMessage);
+        }
+
+        departementService.validateDepartement(departementModifieDto);
+
+        Departement departementExistant = departementService.extractDepartementParId(id);
+        if (departementExistant == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Département non trouvée.");
+        }
+        Departement departementModifie = departementMapper.toBean(departementModifieDto);
+        departementService.modifierDepartement(id, departementModifie);
+        return ResponseEntity.ok("Département modifié avec succès.");
     }
 
-    // Recherche d'un département par son nom avec villes associées
-    @GetMapping("/departement/name-villes")
-    public Optional<Departement> getDepartementByNameWithVilles(@RequestParam String name) {
-        return departementService.getDepartementByNameWithVilles(name);
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> supprimerDepartement(@PathVariable int id) {
+        departementService.supprimerDepartement(id);
+        return ResponseEntity.noContent().build();
     }
 
-    // Recherche d'un département par son code, trié par le nom des villes
-    @GetMapping("/departement/code-villes-sorted")
-    public List<Departement> getDepartementWithSortedCitiesByName(@RequestParam String code) {
-        return departementService.getDepartementWithSortedCitiesByName(code);
+    @GetMapping("/{id}/villes/top/{n}")
+    public ResponseEntity<List<VilleDto>> getTopNVilles(@PathVariable int id, @PathVariable int n) {
+        Departement departement = departementService.extractDepartementParId(id);
+        if (departement == null) {
+            return ResponseEntity.notFound().build();
+        }
+        List<Ville> topVilles = departementService.extractTopNVillesParDepartement(id, n);
+        List<VilleDto> topVillesDto = topVilles.stream().map(villeMapper::toDto).toList();
+        return ResponseEntity.ok(topVillesDto);
     }
 
-    @GetMapping("/departement/pdf")
-    public void exportPdf(@RequestParam String code, HttpServletResponse response) throws IOException, DocumentException, RestResponseEntityExceptionHandler {
-        response.setHeader("Content-Disposition", "attachment; filename=villes.pdf");
+    @GetMapping("/{id}/villes/population")
+    public ResponseEntity<List<VilleDto>> getVillesParPopulation(@PathVariable int id, @RequestParam int min, @RequestParam int max) {
+        Departement departement = departementService.extractDepartementParId(id);
+        if (departement == null) {
+            return ResponseEntity.notFound().build();
+        }
+        List<Ville> villes = departementService.extractVillesEntreParDepartement(id, min, max);
+        List<VilleDto> villesDto = villes.stream().map(villeMapper::toDto).toList();
+        return ResponseEntity.ok(villesDto);
+    }
 
-        Document document = new Document(PageSize.A4);
+    @GetMapping("/exportPdf/{codeDepartement}")
+    public ResponseEntity<String> getVilleDepartement(@PathVariable String codeDepartement, HttpServletResponse response) throws IOException, DocumentException {
+
+        response.setContentType("application/pdf");
+        response.setHeader("Content-Disposition", "attachment; filename=\"departement_" + codeDepartement + ".pdf\"");
+
+        String nomDepartement = departementService.getNomDepartement(codeDepartement);
+
+        Document document = new Document();
         PdfWriter.getInstance(document, response.getOutputStream());
 
-        DepartementDto departementDto = getDepartementByCode(code);
-
-        List<Ville> villes = villeService.getVillesByDepartementCode(code);
-
         document.open();
-        document.addTitle(departementDto.getNom());
+        document.addTitle("Export Département");
+        document.add(new Paragraph("Détails du Département", new Font(Font.FontFamily.HELVETICA, 18, Font.BOLD)));
+        document.add(new Paragraph("Nom du département : " + nomDepartement));
+        document.add(new Paragraph("Code du département : " + codeDepartement));
+        document.add(new Paragraph("\n"));
 
-
-        document.newPage();
-        BaseFont baseFont = BaseFont.createFont(BaseFont.HELVETICA, BaseFont.WINANSI, BaseFont.EMBEDDED);
-        Phrase pFirst = new Phrase("Code : " + departementDto.getCode() + "\n");
-        document.add(pFirst);
-        for (Ville v : villes) {
-            Phrase p = new Phrase("Ville : " + v.getNom() + " / Population : " + v.getNbHabitants() + "\n");
-            document.add(p);
+        document.add(new Paragraph("Liste des villes du département :", new Font(Font.FontFamily.HELVETICA, 14, Font.BOLD)));
+        List<Ville> villes = departementService.extractVillesParDepartement(codeDepartement);
+        if (villes.isEmpty()) {
+            document.add(new Paragraph("Aucune ville trouvée pour ce département."));
+        } else {
+            for (Ville ville : villes) {
+                document.add(new Paragraph("- " + ville.getNom() + " (Population : " + ville.getNbHabitants() + ")"));
+            }
         }
-        Phrase pLast = new Phrase("Population totale : " + departementDto.getNbHabitants() + "\n");
-        document.add(pLast);
+
         document.close();
 
-        response.flushBuffer();
+        return ResponseEntity.ok("PDF créer.");
     }
 }

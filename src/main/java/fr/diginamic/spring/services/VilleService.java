@@ -1,12 +1,17 @@
 package fr.diginamic.spring.services;
 
+import fr.diginamic.spring.dto.VilleDto;
+import fr.diginamic.spring.models.Departement;
 import fr.diginamic.spring.models.Ville;
+import fr.diginamic.spring.exception.FunctionalException;
+import fr.diginamic.spring.repository.DepartementRepository;
 import fr.diginamic.spring.repository.VilleRepository;
-import fr.diginamic.spring.rest.RestResponseEntityExceptionHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -17,82 +22,101 @@ public class VilleService {
     @Autowired
     private VilleRepository villeRepository;
 
-    public Iterable<Ville> getAllVilles(){
+    @Autowired
+    private DepartementRepository departementRepository;
+
+    @Transactional
+    public List<Ville> getAllVilles() {
         return villeRepository.findAll();
     }
 
-    // Recherche d'une ville par son nom
-    public Ville getVilleByNom(String nom) {
+    @Transactional
+    public Page<Ville> getAllVillesPage(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return villeRepository.findAll(pageable);
+    }
+
+    @Transactional
+    public Ville getVilleParId(int idVille) {
+        return villeRepository.findById(idVille).orElse(null);
+    }
+
+    @Transactional
+    public Ville getVilleParNom(String nom) {
         return villeRepository.findByNom(nom);
     }
 
-    // Recherche des villes dont le nom commence par une chaîne donnée
-    public List<Ville> getVillesStartingWith(String prefix) {
+    @Transactional
+    public void insertVille(Ville ville) {
+        Optional<Departement> optionalDepartement = departementRepository.findByCode(ville.getDepartement().getCode());
+        if (optionalDepartement.isPresent()) {
+            ville.setDepartement(optionalDepartement.get());
+            villeRepository.save(ville);
+        }
+
+    }
+
+    @Transactional
+    public void modifierVille(int idVille, Ville villeModifiee) {
+        Ville villeExistante = villeRepository.findById(idVille).orElse(null);
+        if (villeExistante != null) {
+            villeExistante.setNom(villeModifiee.getNom());
+            villeExistante.setNbHabitants(villeModifiee.getNbHabitants());
+
+            Optional<Departement> optionalDepartement = departementRepository.findById(villeModifiee.getDepartement().getId());
+            if (optionalDepartement.isPresent()) {
+                villeExistante.setDepartement(optionalDepartement.get());
+                villeRepository.save(villeExistante);
+            }
+
+        }
+    }
+
+    @Transactional
+    public void supprimerVille(int idVille) {
+        villeRepository.deleteById(idVille);
+    }
+
+    @Transactional
+    public List<Ville> getVillesParPrefixe(String prefix) {
         return villeRepository.findByNomStartingWith(prefix);
     }
 
-    // Recherche des villes ayant une population supérieure à un minimum
-    public List<Ville> getVillesWithPopulationGreaterThan(int minPopulation) {
-        return villeRepository.findAllByNbHabitantsGreaterThan(minPopulation);
+    @Transactional
+    public List<Ville> getVillesPopulationSup1(int min) {
+        return villeRepository.findByNbHabitantsGreaterThan(min);
     }
 
-    // Recherche des villes dont la population est comprise entre deux valeurs
-    public List<Ville> getVillesWithPopulationBetween(int minPopulation, int maxPopulation) {
-        return villeRepository.findAllByNbHabitantsBetween(minPopulation, maxPopulation);
+    @Transactional
+    public List<Ville> getVillesPopulationEntre(int min, int max) {
+        return villeRepository.findByNbHabitantsBetween(min, max);
     }
 
-    // Recherche des n villes les plus peuplées d'un département
-    public Page<Ville> getTopNVillesByDepartement(String codeDepartement, int n, Pageable pageable) {
-        return villeRepository.findTopNVillesByDepartementCodeOrderByNbHabitantsDesc(codeDepartement, pageable);
+    @Transactional
+    public List<Ville> getVillesDepartementPopulationSupA(int departementId, int min) {
+        return villeRepository.findByDepartementIdAndNbHabitantsGreaterThan(departementId, min);
     }
 
-    // Recherche d'une ville par son ID
-    public Optional<Ville> getVilleById(int id) {
-        return villeRepository.findById(id);
+    @Transactional
+    public List<Ville> getVillesDepartementPopulationEntre(int departementId, int min, int max) {
+        return villeRepository.findByDepartementIdAndNbHabitantsBetween(departementId, min, max);
     }
 
-    // Ajouter une nouvelle ville
-    public Ville createVille(Ville ville) throws RestResponseEntityExceptionHandler {
-        idDispo(ville);
-        valideVille(ville);
-        return villeRepository.save(ville);
+    @Transactional
+    public List<Ville> getTopNVillesDepartement(int departementId, int n) {
+        Pageable pageable = PageRequest.of(0, n);
+        return villeRepository.findTopNByDepartementIdOrderByNbHabitantsDesc(departementId, pageable);
     }
 
-    // Modifier une ville existante
-    public Ville modifyVille(int id, Ville ville) throws RestResponseEntityExceptionHandler {
-        valideVille(ville);
-        Optional<Ville> existingVille = villeRepository.findById(id);
-        if (existingVille.isPresent()) {
-            Ville updatedVille = existingVille.get();
-            updatedVille.setNom(ville.getNom());
-            updatedVille.setNbHabitants(ville.getNbHabitants());
-            updatedVille.setDepartement(ville.getDepartement());
-            return villeRepository.save(updatedVille);
-        } else {
-            return null; // Ou lancer une exception selon la logique
+    public void validateVille(VilleDto villeDto) throws FunctionalException {
+        if (villeDto.getNbHabitants() < 10) {
+            throw new FunctionalException("La ville doit avoir au moins 10 habitants.");
         }
-    }
-
-    // Supprimer une ville
-    public void deleteVille(int id) {
-        villeRepository.deleteById(id);
-    }
-
-    public void valideVille(Ville ville) throws RestResponseEntityExceptionHandler {
-        if (ville.getNbHabitants() < 2) {
-            throw new RestResponseEntityExceptionHandler("Pas assez d'habitants");
-        } else if (ville.getNom().length() < 2) {
-            throw new RestResponseEntityExceptionHandler("Nom pas assez long");
+        if (villeDto.getNom() == null || villeDto.getNom().length() < 2) {
+            throw new FunctionalException("Le nom de la ville doit contenir au moins 2 lettres.");
         }
-    }
-
-    public void idDispo(Ville ville) throws RestResponseEntityExceptionHandler {
-        if (villeRepository.findById(ville.getId()).isPresent()) {
-            throw new RestResponseEntityExceptionHandler("Id déjà présente");
+        if (villeDto.getCodeDepartement() == null || villeDto.getCodeDepartement().length() != 2) {
+            throw new FunctionalException("Le code département doit contenir exactement 2 caractères.");
         }
-    }
-
-    public List<Ville> getVillesByDepartementCode(String codeDepartement) {
-        return villeRepository.findVillesByDepartement_Code(codeDepartement);
     }
 }

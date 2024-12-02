@@ -6,6 +6,12 @@ public class DepartementDto {
     private String nom;
     private int nbHabitants;
 
+    public DepartementDto(String code, String nom, int nbHabitants) {
+        this.code = code;
+        this.nom = nom;
+        this.nbHabitants = nbHabitants;
+    }
+
     public int getId() {
         return id;
     }

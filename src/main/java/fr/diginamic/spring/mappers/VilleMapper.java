@@ -12,10 +12,10 @@ public class VilleMapper {
     public VilleDto toDto(Ville ville){
         VilleDto dto = new VilleDto();
         dto.setId(ville.getId());
-        dto.setNom(ville.getDepartement().getName());
+        dto.setNom(ville.getNom());
         dto.setCodeDepartement(ville.getDepartement().getCode());
         dto.setNbHabitants(ville.getNbHabitants());
-        dto.setNomDepartement(ville.getDepartement().getName());
+        dto.setNomDepartement(ville.getDepartement().getNom());
         return dto;
     }
 
