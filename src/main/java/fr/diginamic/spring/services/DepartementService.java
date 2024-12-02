@@ -14,6 +14,10 @@ public class DepartementService {
     @Autowired
     private DepartementRepository departementRepository;
 
+    public List<Departement> findAll() {
+        return departementRepository.findAll();
+    }
+
     // Recherche d'un département par son code
     public Departement getDepartementByCode(String code) {
         return departementRepository.findByCode(code);

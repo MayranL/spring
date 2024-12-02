@@ -1,5 +1,6 @@
 package fr.diginamic.spring.repository;
 
+import fr.diginamic.spring.dto.VilleDto;
 import fr.diginamic.spring.models.Ville;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -14,6 +15,8 @@ public interface VilleRepository extends JpaRepository<Ville, Integer> {
 
     // Recherche d'une ville par son nom
     Ville findByNom(String nom);
+
+    List<Ville> findVillesByDepartement_Code(String departementCode);
 
     // Recherche des villes dont le nom commence par une chaîne donnée
     List<Ville> findByNomStartingWith(String prefix);

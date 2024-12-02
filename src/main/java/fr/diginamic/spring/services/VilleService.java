@@ -91,4 +91,8 @@ public class VilleService {
             throw new RestResponseEntityExceptionHandler("Id déjà présente");
         }
     }
+
+    public List<Ville> getVillesByDepartementCode(String codeDepartement) {
+        return villeRepository.findVillesByDepartement_Code(codeDepartement);
+    }
 }
