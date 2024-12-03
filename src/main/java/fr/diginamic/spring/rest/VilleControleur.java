@@ -7,11 +7,6 @@ import fr.diginamic.spring.exception.FunctionalException;
 import fr.diginamic.spring.mappers.VilleMapper;
 import fr.diginamic.spring.services.DepartementService;
 import fr.diginamic.spring.services.VilleService;
-/*import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;*/
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +16,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.ui.Model;
 
 import java.io.IOException;
 import java.io.PrintWriter;
